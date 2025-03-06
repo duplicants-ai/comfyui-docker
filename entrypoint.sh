@@ -28,7 +28,7 @@ done
 
 # Creates the symlink for the ComfyUI Manager to the custom nodes directory, which is also mounted from the host
 echo "Creating symlink for ComfyUI Manager..."
-rm --force /opt/comfyui/custom_nodes/ComfyUI-Manager
+rm -rf /opt/comfyui/custom_nodes/ComfyUI-Manager
 ln -s \
     /opt/comfyui-manager \
     /opt/comfyui/custom_nodes/ComfyUI-Manager

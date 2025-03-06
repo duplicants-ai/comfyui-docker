@@ -1,0 +1,65 @@
+To create the docker_image.tar file:
+
+
+On linux - although probably works on DOS too...
+
+cd ...\Repos\comfyui-docker
+
+sudo docker build .     makes an image based on the local Dockerfile
+
+sudo docker images      to see built images, where/how these are stored is a mystery
+
+This will show:
+REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
+<none>        <none>    54a278d0d90a   6 minutes ago   6.8GB
+hello-world   latest    74cc54e27dc4   6 weeks ago     10.1kB
+
+note the IMAGE ID = 54a278d0d90a
+
+then
+sudo docker save -o comfyui_1_docker_image.tar 54a278d0d90a
+
+generates comfyui_1_docker_image.tar in the local folder
+
+-
+
+On the targt machine:
+
+- launch_docker_image.sh
+
+#!/bin/bash
+
+sudo docker load -i image.tar
+sudo docker images
+sudo docker run \
+    --name comfyui \
+    --env USER_ID="$(id -u)" \
+    --env GROUP_ID="$(id -g)" \
+    --volume "./comfyui_models:/opt/comfyui/models:rw" \
+    --volume "./comfyui_custom_nodes:/opt/comfyui/custom_nodes:rw" \
+    --publish 8188:8188 \
+    --gpus all \
+    54a278d0d90a
+
+- run_docker_image.sh
+
+#!/bin/bash
+
+sudo docker run \
+    --name comfyui \
+    --env USER_ID="$(id -u)" \
+    --env GROUP_ID="$(id -g)" \
+    --volume "./comfyui_models:/opt/comfyui/models:rw" \
+    --volume "./comfyui_custom_nodes:/opt/comfyui/custom_nodes:rw" \
+    --publish 8188:8188 \
+    --gpus all \
+    54a278d0d90a
+
+- stop_docker_image.sh
+
+#!/bin/bash
+
+sudo docker ps
+sudo docker stop comfyui
+
+
