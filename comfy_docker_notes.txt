@@ -1,0 +1,89 @@
+
+To create the docker_image.tar file:
+On linux - although probably works on DOS too...
+
+cd ...\Repos\comfyui-docker
+
+sudo docker build .     makes an image based on the local Dockerfile
+
+sudo docker images      to see built images, where/how these are stored is a mystery
+
+This will show:
+REPOSITORY    TAG       IMAGE ID       CREATED         SIZE
+<none>        <none>    d15617462062   6 minutes ago   6.8GB
+hello-world   latest    74cc54e27dc4   6 weeks ago     10.1kB
+
+note the IMAGE ID = d15617462062
+
+then
+sudo docker save -o docker_image_comfyui_2.tar d15617462062
+
+generates docker_image_comfyui_2.tar in the local folder
+
+-
+
+On the target machine:
+
+bash <script>.sh   - run one of the scripts below
+
+- load_docker_image.sh
+
+#!/bin/bash
+
+sudo docker load -i docker_image_comfyui_2.tar
+sudo docker images
+sudo bash ./copy_models_locally.sh
+
+---- run_docker_image.sh
+
+#!/bin/bash
+
+# certain folders are exposed to the persistent filesystem by redirecting them outside the container
+[-d comfyui_input] || mkdir comfyui_input
+[-d comfyui_models] || mkdir comfyui_models
+[-d comfyui_custom_nodes] || mkdir comfyui_custom_nodes
+[-d comfyui_output] || mkdir comfyui_output
+[-d comfyui_workflows] || mkdir comfyui_workflows
+
+sudo docker run \
+    --name comfyui \
+    --env USER_ID="$(id -u)" \
+    --env GROUP_ID="$(id -g)" \
+    --volume "./comfyui_input:/opt/comfyui/input:rw" \
+    --volume "/home/ubuntu/comfyui_models:/opt/comfyui/models:rw" \
+    --volume "./comfyui_custom_nodes:/opt/comfyui/custom_nodes:rw" \
+    --volume "./comfyui_output:/opt/comfyui/output:rw" \
+	--volume "./comfyui_workflows:/opt/comfyui/user/default/workflows:rw" \
+    --publish 8188:8188 \
+    --gpus all \
+    d15617462062
+sudo docker ps
+
+---- stop_docker_image.sh
+
+#!/bin/bash
+
+sudo docker ps
+sudo docker stop comfyui
+sudo docker rm comfyui
+sudo docker ps
+
+---- unload_docker_image.sh
+
+#!/bin/bash
+
+sudo docker stop comfyui 
+sudo docker rm comfyui
+sudo docker rmi d15617462062
+sudo docker images
+
+---- copy_models_locally.sh
+
+#!/bin/bash
+cp -r comfyui_models /home/ubuntu
+
+
+
+
+
+

@@ -8,25 +8,22 @@ RUN apt update --assume-yes && \
         git \
         sudo
 
-# Clones the ComfyUI repository and checks out the latest release
+# Clones the ComfyUI repository and checks out a known good release
 RUN git clone https://github.com/comfyanonymous/ComfyUI.git /opt/comfyui && \
     cd /opt/comfyui && \
-    git checkout tags/v0.3.7
+    git checkout tags/v0.3.24
 
-# Clones the ComfyUI Manager repository and checks out the latest release; ComfyUI Manager is an extension for ComfyUI that enables users to install
-# custom nodes and download models directly from the ComfyUI interface; instead of installing it to "/opt/comfyui/custom_nodes/ComfyUI-Manager", which
-# is the directory it is meant to be installed in, it is installed to its own directory; the entrypoint will symlink the directory to the correct
-# location upon startup; the reason for this is that the ComfyUI Manager must be installed in the same directory that it installs custom nodes to, but
-# this directory is mounted as a volume, so that the custom nodes are not installed inside of the container and are not lost when the container is
-# removed; this way, the custom nodes are installed on the host machine
-RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git /opt/comfyui-manager && \
-    cd /opt/comfyui-manager && \
-    git checkout tags/2.55.5
+# Installs the required Python packages for ComfyUI
+RUN pip install --requirement /opt/comfyui/requirements.txt
+	
+# Clones the ComfyUI Manager repository and checks out a known good release; ComfyUI Manager is an extension for ComfyUI that enables users to install
+# custom nodes and download models directly from the ComfyUI interface
+RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git /opt/comfyui/custom_nodes/comfyui-manager && \
+    cd /opt/comfyui/custom_nodes/comfyui-manager && \
+    git checkout tags/3.30.2
 
-# Installs the required Python packages for both ComfyUI and the ComfyUI Manager
-RUN pip install \
-    --requirement /opt/comfyui/requirements.txt \
-    --requirement /opt/comfyui-manager/requirements.txt
+# Installs the required Python packages for ComfyUI Manager
+RUN pip install --requirement /opt/comfyui/custom_nodes/comfyui-manager/requirements.txt
 
 # Sets the working directory to the ComfyUI directory
 WORKDIR /opt/comfyui
@@ -35,9 +32,7 @@ WORKDIR /opt/comfyui
 # so that the user knows which port to publish)
 EXPOSE 8188
 
-# Adds the startup script to the container; the startup script will create all necessary directories in the models and custom nodes volumes that were
-# mounted to the container and symlink the ComfyUI Manager to the correct directory; it will also create a user with the same UID and GID as the user
-# that started the container, so that the files created by the container are owned by the user that started the container and not the root user
+# Adds the startup script to the container - doesn't do much but makes it easy to add stuff later. this was doing a lot more in the orginal (pre fork) code
 ADD entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 
