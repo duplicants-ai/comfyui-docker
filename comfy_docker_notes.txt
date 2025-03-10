@@ -45,10 +45,13 @@ sudo bash ./copy_models_locally.sh
 [-d comfyui_output] || mkdir comfyui_output
 [-d comfyui_workflows] || mkdir comfyui_workflows
 
+# USER_ID = $(id -u)
+# GROUP_ID = $(id -g)
+
 sudo docker run \
     --name comfyui \
-    --env USER_ID="$(id -u)" \
-    --env GROUP_ID="$(id -g)" \
+    --env USER_ID="1001" \
+    --env GROUP_ID="1001" \
     --volume "./comfyui_input:/opt/comfyui/input:rw" \
     --volume "/home/ubuntu/comfyui_models:/opt/comfyui/models:rw" \
     --volume "./comfyui_custom_nodes:/opt/comfyui/custom_nodes:rw" \
